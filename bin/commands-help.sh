@@ -7,6 +7,7 @@
 
 printf %s "\
 available commands:
+   all             execute all commands
    disk            create disk volume
       -d|diskname    sandbox name
    instance        create instance

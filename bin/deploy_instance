@@ -40,7 +40,7 @@ do
   #echo $key
   if [[ $key =~ ^(help|--help|-h|-help)$ ]]; then
     usage
-  elif [[ $key =~ ^(disk|instance|firewall)$ ]]; then
+  elif [[ $key =~ ^(all|disk|instance|firewall)$ ]]; then
     COMMAND=$key
   elif [[ $key =~ ^(-v|--version)$ ]]; then
     echo "${TOOLS_VERSION}"
@@ -134,7 +134,9 @@ function setup_default_path() {
 
 function execute_commands()
 {
-  if [[ $COMMAND == "disk" ]];then
+  if [[ $COMMAND == "all" ]];then
+     execute_all_commands
+  elif [[ $COMMAND == "disk" ]];then
      create_disk
   elif [[ $COMMAND == "instance" ]];then
      create_instance
@@ -144,6 +146,12 @@ function execute_commands()
     echo "Error:Command:${COMMAND} not found"
     exit 1
   fi
+}
+
+function execute_all_commands(){
+  create_disk
+  create_instance
+  setup_firewall_ports
 }
 
 function create_disk(){
