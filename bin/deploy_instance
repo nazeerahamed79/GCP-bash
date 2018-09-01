@@ -1,0 +1,170 @@
+#!/bin/bash
+#
+# Frontend for deploying instance in gcp
+#
+# Copyright (c)
+# All rights reserved.
+#
+# Original: username <username@gmail.com>, Aug 2018
+
+
+TOOLS_VERSION="1.0"
+
+myname=$(basename $0)
+mydir=$(dirname $0)
+#echo $mydir
+bindir=$mydir
+contact='nazeer@hotmail.com'
+usage() {
+    printf %s "\
+usage: $myname [-h] [command] [arguments]
+
+positional arguments:
+  command               command name to run
+
+optional arguments:
+  -h, --help            show this help message and exit
+"
+echo "$myname [command] arguments"
+. ${bindir}/commands-help.sh
+    exit 0
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+while [[ $# -ge 1 ]]
+do
+  key="$1"
+  #echo $key
+  if [[ $key =~ ^(help|--help|-h|-help)$ ]]; then
+    usage
+  elif [[ $key =~ ^(disk|instance|firewall)$ ]]; then
+    COMMAND=$key
+  elif [[ $key =~ ^(-v|--version)$ ]]; then
+    echo "${TOOLS_VERSION}"
+    exit 0
+  else
+    echo "INFO: Command not found, kindly check help"
+    exit 0
+  fi
+  shift
+  while [[ $# -ge 1 ]]
+  do
+    sub_key=$1
+    case $sub_key in
+        -d|--d|-disk|--disk)
+        DISK="$2"
+        shift # past argument
+        ;;
+        -i|--i|-instance|--instance)
+        INSTANCE="$2"
+        shift # past argument
+        ;;
+        -p|--p|-ports|--ports)
+        PORTS="$2"
+        shift # past argument
+        ;;
+        -z|--z|-zone|--zone)
+        ZONE="$2"
+        shift # past argument
+        ;;
+	      help|--help|-h|-help)
+	      usage
+	      ;;
+    esac
+    shift # past argument or value
+  done
+  shift
+done
+
+#Varaiable declaration
+CURRENT_USER=$(whoami)
+
+function validate_disk_input(){
+  if [[ -z ${DISK} ]]; then
+      echo "Diskname is mandatory input"
+      exit 0
+  fi
+}
+
+function validate_instance_input(){
+  if [[ -z ${INSTANCE} ]]; then
+      echo "Instance name is mandatory input"
+      exit 0
+  fi
+  if [[ -z ${ZONE} ]]; then
+      echo "Zone is mandatory input"
+      exit 0
+  fi
+}
+
+function validate_port_input(){
+  if [[ -z ${PORTS} ]]; then
+      echo "PORTS is mandatory input"
+      exit 0
+  fi
+}
+
+function print_inputs() {
+  echo "Command:$COMMAND"
+}
+
+function prepend_PATH() {
+    # First, make sure there are : everywhere in the strings
+    local entry=":$1:"
+    local path=":$PATH:"
+    # Remove all occurences of :$1: in :$PATH:
+    path=${path//$entry/:}
+    # Remove duplicate ::
+    path=${path/#:/}
+    # Prepend path with the given entry
+    export PATH=$1:${path/%:/}
+}
+
+function setup_default_path() {
+  PATH="$bindir:/usr/bin:/sbin:/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin"
+    if [ ! -z $PATH ]; then
+        prepend_PATH $PATH
+    else
+        echo "WARNING: can't find $PATH, using default Path from the USERID settings"
+    fi
+}
+
+function execute_commands()
+{
+  if [[ $COMMAND == "disk" ]];then
+     create_disk
+  elif [[ $COMMAND == "instance" ]];then
+     create_instance
+  elif [[ $COMMAND == "firewall" ]];then
+     setup_firewall_ports
+  else
+    echo "Error:Command:${COMMAND} not found"
+    exit 1
+  fi
+}
+
+function create_disk(){
+    echo "--------creating disk-------"
+    validate_disk_input
+    echo "name:${DISK}"
+}
+
+function create_instance(){
+    echo "--------creating instance-------"
+    validate_instance_input
+    echo "name:${INSTANCE}"
+}
+
+function setup_firewall_ports(){
+    echo "--------setup firewall on ports-------"
+    validate_port_input
+    echo "ports:${PORTS}"
+}
+
+#Main function
+setup_default_path
+print_inputs
+execute_commands
