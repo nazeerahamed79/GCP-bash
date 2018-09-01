@@ -1,0 +1,118 @@
+#!/bin/bash
+#
+# Frontend for configure instance in gcp
+#
+# Copyright (c)
+# All rights reserved.
+#
+# Original: username <username@gmail.com>, Aug 2018
+
+
+TOOLS_VERSION="1.0"
+
+myname=$(basename $0)
+mydir=$(dirname $0)
+#echo $mydir
+bindir=$mydir
+contact='nazeer@hotmail.com'
+usage() {
+    printf %s "\
+usage: $myname [-h] [command] [arguments]
+
+positional arguments:
+  command               command name to run
+
+optional arguments:
+  -h, --help            show this help message and exit
+"
+echo "$myname [command] arguments"
+. ${bindir}/configure-instance-help.sh
+    exit 0
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+while [[ $# -ge 1 ]]
+do
+  key="$1"
+  #echo $key
+  if [[ $key =~ ^(help|--help|-h|-help)$ ]]; then
+    usage
+  elif [[ $key =~ ^(upgradeos|install)$ ]]; then
+    COMMAND=$key
+  elif [[ $key =~ ^(-v|--version)$ ]]; then
+    echo "${TOOLS_VERSION}"
+    exit 0
+  else
+    echo "INFO: Command not found, kindly check help"
+    exit 0
+  fi
+  shift
+  while [[ $# -ge 1 ]]
+  do
+    sub_key=$1
+    case $sub_key in
+        -d|--d|-disk|--disk)
+        DISK="$2"
+        shift # past argument
+        ;;
+        -i|--i|-instance|--instance)
+        INSTANCE="$2"
+        shift # past argument
+        ;;
+	      help|--help|-h|-help)
+	      usage
+	      ;;
+    esac
+    shift # past argument or value
+  done
+  shift
+done
+
+#Varaiable declaration
+CURRENT_USER=$(whoami)
+
+function validate_disk_input(){
+  if [[ -z ${DISK} ]]; then
+      echo "Diskname is mandatory input"
+      exit 0
+  fi
+}
+
+function validate_instance_input(){
+  if [[ -z ${INSTANCE} ]]; then
+      echo "Instance name is mandatory input"
+      exit 0
+  fi
+}
+
+function print_inputs() {
+  echo "Command:$COMMAND"
+}
+
+function execute_commands()
+{
+  if [[ $COMMAND == "mount" ]];then
+     mount_filesystem
+  elif [[ $COMMAND == "install" ]];then
+     install
+  else
+    echo "Error:Command:${COMMAND} not found"
+    exit 1
+  fi
+}
+
+function install(){
+    echo "--------installing git, nginx-------"
+    apt-get install -y git nginx
+    if [[ $? -ne 0 ]]; then
+      echo "Error: Installing git and nginx"
+      exit 1
+    fi
+}
+
+#Main function
+print_inputs
+execute_commands
