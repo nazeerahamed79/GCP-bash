@@ -150,12 +150,18 @@ function create_disk(){
     echo "--------creating disk-------"
     validate_disk_input
     echo "name:${DISK}"
+
 }
 
 function create_instance(){
     echo "--------creating instance-------"
     validate_instance_input
     echo "name:${INSTANCE}"
+    gcloud compute instances create ${INSTANCE} --zone ${ZONE}
+    if [ $? -ne 0 ]; then
+        echo "Error: creating instance:${INSTANCE}"
+        exit 1
+    fi
 }
 
 function setup_firewall_ports(){
