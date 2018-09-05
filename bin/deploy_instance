@@ -166,6 +166,7 @@ function create_instance(){
     validate_instance_input
     echo "name:${INSTANCE}"
     gcloud compute instances create ${INSTANCE} --zone ${ZONE}
+    gcloud compute disks create my-disk-1 stl-data-disk --zone us-east1-a
     if [ $? -ne 0 ]; then
         echo "Error: creating instance:${INSTANCE}"
         exit 1
