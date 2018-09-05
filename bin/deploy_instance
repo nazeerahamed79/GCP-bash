@@ -140,6 +140,8 @@ function execute_commands()
      create_disk
   elif [[ $COMMAND == "instance" ]];then
      create_instance
+  elif [[ $COMMAND == "Attach Disk" ]];then
+     setup_Attach_Disks
   elif [[ $COMMAND == "firewall" ]];then
      setup_firewall_ports
   else
@@ -151,7 +153,9 @@ function execute_commands()
 function execute_all_commands(){
   create_disk
   create_instance
+  Attach_Disk
   setup_firewall_ports
+  
 }
 
 function create_disk(){
@@ -172,6 +176,12 @@ function create_instance(){
         exit 1
     fi
 }
+ 
+ function Attach_Disk(){
+ gcloud compute instances attach-disk example-instance \
+      --disk stl-data-disk --zone us-east1-a
+      
+      }
 
 function setup_firewall_ports(){
     echo "--------setup firewall on ports-------"
